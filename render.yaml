@@ -1,0 +1,43 @@
+services:
+  # Backend Service
+  - type: web
+    name: livecall-backend
+    env: java
+    buildCommand: ./mvnw clean package -DskipTests
+    startCommand: java -jar target/call-0.0.1-SNAPSHOT.jar
+    plan: free
+    rootDir: call
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: production
+      - key: SERVER_PORT
+        value: 8080
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase:
+          name: livecall-db
+          property: connectionString
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: livecall-db
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: livecall-db
+          property: password
+
+  # Frontend Service  
+  - type: web
+    name: livecall-frontend
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm run preview -- --host 0.0.0.0 --port $PORT
+    plan: free
+    rootDir: react-vite-app
+    envVars:
+      - key: VITE_API_BASE
+        value: https://livecall-backend.onrender.com
+
+databases:
+  - name: livecall-db
+    databaseName: livecall
+    plan: free
